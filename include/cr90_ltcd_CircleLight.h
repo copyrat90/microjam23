@@ -2,8 +2,9 @@
 
 #include "cr90_ltcd_Entity.h"
 
-#include "bn_sprite_animate_actions.h"
+#include "bn_span.h"
 #include "bn_sprite_ptr.h"
+#include "bn_vector.h"
 
 namespace cr90::ltcd
 {
@@ -43,7 +44,13 @@ public:
 
 private:
     bn::sprite_ptr _spr;
-    bn::optional<bn::sprite_animate_action<MAX_FRAMES>> _anim;
+    int _radius;
+
+    bn::vector<uint16_t, MAX_FRAMES> _radiuses;
+    int _wait_updates = 0;
+    int _current_radiuses_index = 0;
+    int _current_wait_updates = 0;
+    bool _forever = true;
 };
 
 } // namespace cr90::ltcd
