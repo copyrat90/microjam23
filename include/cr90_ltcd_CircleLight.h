@@ -17,7 +17,7 @@ public:
 public:
     CircleLight(const bn::fixed_point& position, int radius);
 
-    void update(const mj::game_data&) override;
+    void update(const mj::game_data&, Game&) override;
 
 public:
     /**

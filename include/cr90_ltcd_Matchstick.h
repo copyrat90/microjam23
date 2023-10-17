@@ -15,8 +15,8 @@ class Matchstick final : public Entity
 public:
     Matchstick(const bn::fixed_point& position, bool fire);
 
-    void handle_input(const mj::game_data&) override;
-    void update(const mj::game_data&) override;
+    void handle_input(const mj::game_data&, Game&) override;
+    void update(const mj::game_data&, Game&) override;
 
 public:
     bool fire() const;
@@ -35,6 +35,7 @@ private:
 
     CircleCollider _collider;
 
+    int _particle_emit_countdown;
     bool _fire;
 };
 

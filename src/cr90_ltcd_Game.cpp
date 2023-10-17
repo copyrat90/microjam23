@@ -72,6 +72,11 @@ bool Game::victory() const
     return _victory;
 }
 
+auto Game::particles() -> LightParticles&
+{
+    return _particles;
+}
+
 void Game::fade_in(const mj::game_data& data)
 {
     update(data);
@@ -95,14 +100,15 @@ void Game::fade_out(const mj::game_data& data)
 
 auto Game::handle_input(const mj::game_data& data) -> mj::game_result
 {
-    _matchstick.handle_input(data);
+    _matchstick.handle_input(data, *this);
 
     return mj::game_result{.exit = false, .remove_title = false};
 }
 
 auto Game::update(const mj::game_data& data) -> mj::game_result
 {
-    _matchstick.update(data);
+    _matchstick.update(data, *this);
+    _particles.update(data, *this);
 
     return mj::game_result{.exit = false, .remove_title = false};
 }

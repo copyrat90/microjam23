@@ -3,6 +3,8 @@
 #include "bn_fixed_point.h"
 #include "bn_keypad.h"
 
+#include "cr90_ltcd_Game.h"
+
 #include "bn_sprite_items_cr90_ltcd_matchstick.h"
 
 namespace cr90::ltcd
@@ -17,11 +19,14 @@ constexpr auto COLL_DIFF = bn::fixed_point(0, 0);
 constexpr int LIGHT_RADIUS = 15;
 constexpr int COLL_RADIUS = 8;
 
+constexpr int PARTICLE_INTERVAL = 8;
+
 } // namespace
 
 Matchstick::Matchstick(const bn::fixed_point& position, bool fire)
     : Entity(position), _spr_stick(bn::sprite_items::cr90_ltcd_matchstick.create_sprite(position + STICK_DIFF, fire)),
-      _light(position, (fire ? LIGHT_RADIUS : 0)), _collider(position + COLL_DIFF, COLL_RADIUS), _fire(fire)
+      _light(position, (fire ? LIGHT_RADIUS : 0)), _collider(position + COLL_DIFF, COLL_RADIUS),
+      _particle_emit_countdown(PARTICLE_INTERVAL), _fire(fire)
 {
     set_position(position);
     set_fire(fire);
@@ -29,7 +34,7 @@ Matchstick::Matchstick(const bn::fixed_point& position, bool fire)
     _spr_stick.set_bg_priority(2);
 }
 
-void Matchstick::handle_input(const mj::game_data&)
+void Matchstick::handle_input(const mj::game_data&, Game&)
 {
     constexpr bn::fixed MOVE_SPEED = 2.0f;
 
@@ -43,9 +48,22 @@ void Matchstick::handle_input(const mj::game_data&)
         set_y(y() + MOVE_SPEED);
 }
 
-void Matchstick::update(const mj::game_data& data)
+void Matchstick::update(const mj::game_data& data, Game& game)
 {
-    _light.update(data);
+    _light.update(data, game);
+
+    if (_fire)
+    {
+        if (--_particle_emit_countdown <= 0)
+        {
+            _particle_emit_countdown = PARTICLE_INTERVAL;
+
+            auto particle_position = position();
+            particle_position.set_x(x() + data.random.get_int(-3, 3));
+            particle_position.set_y(y() - 10);
+            game.particles().add_particle(particle_position);
+        }
+    }
 }
 
 bool Matchstick::fire() const

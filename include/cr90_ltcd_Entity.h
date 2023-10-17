@@ -10,14 +10,16 @@ struct game_data;
 namespace cr90::ltcd
 {
 
+class Game;
+
 class Entity
 {
 public:
     virtual ~Entity() = 0;
     Entity(const bn::fixed_point& position);
 
-    virtual void handle_input(const mj::game_data&){};
-    virtual void update(const mj::game_data&){};
+    virtual void handle_input(const mj::game_data&, Game&){};
+    virtual void update(const mj::game_data&, Game&){};
 
 public:
     auto position() const -> const bn::fixed_point&;

@@ -35,7 +35,7 @@ CircleLight::CircleLight(const bn::fixed_point& position, int radius)
     _spr.set_window_enabled(true);
 }
 
-void CircleLight::update(const mj::game_data&)
+void CircleLight::update(const mj::game_data&, Game&)
 {
     // copycat of `bn::sprite_animate_action::update()`, but with `create_circle_light_sprite()`.
     if (animation_running())

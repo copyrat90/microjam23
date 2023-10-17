@@ -5,6 +5,7 @@
 #include "bn_regular_bg_ptr.h"
 
 #include "cr90_ltcd_Matchstick.h"
+#include "cr90_ltcd_LightParticles.h"
 
 namespace cr90::ltcd
 {
@@ -18,6 +19,9 @@ public:
 
     int total_frames() const final;
     bool victory() const final;
+
+public:
+    auto particles() -> LightParticles&;
 
 public:
     void fade_in(const mj::game_data&) final;
@@ -36,6 +40,7 @@ private:
     bn::regular_bg_ptr _bg_black;
 
     Matchstick _matchstick;
+    LightParticles _particles;
 
     int _total_frames;
     int _show_result_frames = 60;
