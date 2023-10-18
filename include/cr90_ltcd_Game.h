@@ -3,15 +3,20 @@
 #include "mj/mj_game.h"
 
 #include "bn_regular_bg_ptr.h"
+#include "bn_vector.h"
 
-#include "cr90_ltcd_Matchstick.h"
+#include "cr90_ltcd_Candle.h"
 #include "cr90_ltcd_LightParticles.h"
+#include "cr90_ltcd_Matchstick.h"
 
 namespace cr90::ltcd
 {
 
 class Game final : public mj::game
 {
+public:
+    static constexpr int MAX_CANDLES = 8;
+
 public:
     Game(int completed_games, const mj::game_data&);
 
@@ -34,12 +39,14 @@ public:
 
 private:
     const mj::difficulty_level _difficulty;
-    const int _candles;
+
+    int _not_fire_candles_count;
 
     bn::regular_bg_ptr _bg_cake;
     bn::regular_bg_ptr _bg_black;
 
     Matchstick _matchstick;
+    bn::vector<Candle, MAX_CANDLES> _candles;
     LightParticles _particles;
 
     int _total_frames;

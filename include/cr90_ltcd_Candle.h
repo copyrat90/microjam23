@@ -10,12 +10,11 @@
 namespace cr90::ltcd
 {
 
-class Matchstick final : public Fireable
+class Candle final : public Fireable
 {
 public:
-    Matchstick(const bn::fixed_point& position, bool fire);
+    Candle(const bn::fixed_point& position, bool fire);
 
-    void handle_input(const mj::game_data&, Game&) override;
     void update(const mj::game_data&, Game&) override;
 
 public:
@@ -27,7 +26,7 @@ public:
     void set_y(bn::fixed) override;
 
 private:
-    bn::sprite_ptr _spr_stick;
+    bn::sprite_ptr _spr_candle;
 };
 
 } // namespace cr90::ltcd

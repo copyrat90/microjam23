@@ -10,7 +10,7 @@ namespace cr90::ltcd
 class LightParticles
 {
 public:
-    static constexpr int MAX_COUNT = 32;
+    static constexpr int MAX_COUNT = 64;
 
 public:
     void add_particle(const bn::fixed_point& position);

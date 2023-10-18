@@ -14,6 +14,9 @@ class CircleLight final : public Entity
 public:
     static constexpr int MAX_FRAMES = 8;
 
+    static constexpr int MIN_RADIUS = 0;
+    static constexpr int MAX_RADIUS = 32;
+
 public:
     CircleLight(const bn::fixed_point& position, int radius);
 

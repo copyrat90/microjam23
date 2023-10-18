@@ -8,16 +8,10 @@
 namespace cr90::ltcd
 {
 
-namespace
-{
-constexpr int MIN_RADIUS = 0;
-constexpr int MAX_RADIUS = 32;
-} // namespace
-
 static auto create_circle_light_sprite(const bn::fixed_point& position, int radius) -> bn::sprite_ptr
 {
-    BN_ASSERT(MIN_RADIUS <= radius && radius <= MAX_RADIUS, "CircleLight radius=", radius, " not in [", MIN_RADIUS,
-              "..", MAX_RADIUS, "]");
+    BN_ASSERT(CircleLight::MIN_RADIUS <= radius && radius <= CircleLight::MAX_RADIUS, "CircleLight radius=", radius,
+              " not in [", CircleLight::MIN_RADIUS, "..", CircleLight::MAX_RADIUS, "]");
 
     if (radius <= 4)
         return bn::sprite_items::cr90_ltcd_light_w8.create_sprite(position, radius);
@@ -32,6 +26,7 @@ static auto create_circle_light_sprite(const bn::fixed_point& position, int radi
 CircleLight::CircleLight(const bn::fixed_point& position, int radius)
     : Entity(position), _spr(create_circle_light_sprite(position, radius)), _radius(radius)
 {
+    _spr.set_bg_priority(2);
     _spr.set_window_enabled(true);
 }
 

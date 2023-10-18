@@ -1,0 +1,44 @@
+#pragma once
+
+#include "cr90_ltcd_Entity.h"
+
+#include "bn_sprite_ptr.h"
+
+#include "cr90_ltcd_CircleCollider.h"
+#include "cr90_ltcd_CircleLight.h"
+
+namespace cr90::ltcd
+{
+
+class Fireable : public Entity
+{
+public:
+    virtual ~Fireable() = 0;
+    Fireable(const bn::fixed_point& position, bool fire, int light_median_radius, bn::fixed collider_radius,
+             int particle_emit_interval);
+
+    void update(const mj::game_data&, Game&) override;
+
+public:
+    bool fire() const;
+    virtual void set_fire(bool);
+
+    auto collider() const -> const CircleCollider&;
+
+public:
+    void set_position(const bn::fixed_point&) override;
+    void set_x(bn::fixed) override;
+    void set_y(bn::fixed) override;
+
+private:
+    const int _light_median_radius;
+    const int _particle_emit_interval;
+
+    CircleLight _light;
+    CircleCollider _collider;
+
+    int _particle_emit_countdown;
+    bool _fire;
+};
+
+} // namespace cr90::ltcd
