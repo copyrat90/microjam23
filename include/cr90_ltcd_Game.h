@@ -37,6 +37,15 @@ public:
     auto handle_input(const mj::game_data&) -> mj::game_result;
     auto update(const mj::game_data&) -> mj::game_result;
 
+public:
+    /**
+     * @brief Plays the `spooky_birthday.vgm` with the recommended tempo
+     * and returns the total frames the game should last.
+     *
+     * @return Recommended total frames (maximum number of frames that this game should last).
+     */
+    static int play_spooky_birthday_vgm(int completed_games, const mj::game_data& data);
+
 private:
     const mj::difficulty_level _difficulty;
 

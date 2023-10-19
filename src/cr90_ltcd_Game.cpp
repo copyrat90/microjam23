@@ -11,16 +11,34 @@
 #include "bn_regular_bg_items_cr90_ltcd_black.h"
 #include "bn_regular_bg_items_cr90_ltcd_cake.h"
 
+#include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t138.h"
+#include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t143.h"
+#include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t149.h"
+#include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t154.h"
+#include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t160.h"
+#include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t165.h"
+#include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t171.h"
+#include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t176.h"
+#include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t182.h"
+#include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t187.h"
+#include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t193.h"
+#include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t198.h"
+#include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t204.h"
+#include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t209.h"
+#include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t215.h"
+#include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t220.h"
+
 namespace
 {
 constexpr bn::string_view code_credits[] = {"copyrat90"};
 constexpr bn::string_view graphics_credits[] = {"copyrat90"};
+constexpr bn::string_view music_credits[] = {"copyrat90"};
 } // namespace
 
 MJ_GAME_LIST_ADD(cr90::ltcd::Game)
 MJ_GAME_LIST_ADD_CODE_CREDITS(code_credits)
 MJ_GAME_LIST_ADD_GRAPHICS_CREDITS(graphics_credits)
-// MJ_GAME_LIST_ADD_MUSIC_CREDITS(music_credits)
+MJ_GAME_LIST_ADD_MUSIC_CREDITS(music_credits)
 // MJ_GAME_LIST_ADD_SFX_CREDITS(sfx_credits)
 
 namespace cr90::ltcd
@@ -82,7 +100,7 @@ Game::Game(int completed_games, const mj::game_data& data)
       _bg_cake(bn::regular_bg_items::cr90_ltcd_cake.create_bg((256 - 240) / 2, (256 - 160) / 2)),
       _bg_black(bn::regular_bg_items::cr90_ltcd_black.create_bg((256 - 240) / 2, (256 - 160) / 2)),
       _matchstick(bn::fixed_point(-20, -20), init_matchstick_fire(_difficulty, data.random)),
-      _total_frames(play_jingle(mj::game_jingle_type::TOTSNUK14, completed_games, data))
+      _total_frames(play_spooky_birthday_vgm(completed_games, data))
 {
     // init shadow effect
     _bg_black.set_priority(2);
@@ -158,6 +176,69 @@ auto Game::update(const mj::game_data& data) -> mj::game_result
     _particles.update(data, *this);
 
     return mj::game_result{.exit = false, .remove_title = false};
+}
+
+int Game::play_spooky_birthday_vgm(int completed_games, const mj::game_data& data)
+{
+    const int tempo = (recommended_music_tempo(completed_games, data) * 120).round_integer();
+
+    switch (tempo)
+    {
+    case 138:
+        bn::dmg_music_items::cr90_ltcd_spooky_birthday_t138.play(1, false);
+        break;
+    case 143:
+        bn::dmg_music_items::cr90_ltcd_spooky_birthday_t143.play(1, false);
+        break;
+    case 149:
+        bn::dmg_music_items::cr90_ltcd_spooky_birthday_t149.play(1, false);
+        break;
+    case 154:
+        bn::dmg_music_items::cr90_ltcd_spooky_birthday_t154.play(1, false);
+        break;
+    case 160:
+        bn::dmg_music_items::cr90_ltcd_spooky_birthday_t160.play(1, false);
+        break;
+    case 165:
+        bn::dmg_music_items::cr90_ltcd_spooky_birthday_t165.play(1, false);
+        break;
+    case 171:
+        bn::dmg_music_items::cr90_ltcd_spooky_birthday_t171.play(1, false);
+        break;
+    case 176:
+        bn::dmg_music_items::cr90_ltcd_spooky_birthday_t176.play(1, false);
+        break;
+    case 182:
+        bn::dmg_music_items::cr90_ltcd_spooky_birthday_t182.play(1, false);
+        break;
+    case 187:
+        bn::dmg_music_items::cr90_ltcd_spooky_birthday_t187.play(1, false);
+        break;
+    case 193:
+        bn::dmg_music_items::cr90_ltcd_spooky_birthday_t193.play(1, false);
+        break;
+    case 198:
+        bn::dmg_music_items::cr90_ltcd_spooky_birthday_t198.play(1, false);
+        break;
+    case 204:
+        bn::dmg_music_items::cr90_ltcd_spooky_birthday_t204.play(1, false);
+        break;
+    case 209:
+        bn::dmg_music_items::cr90_ltcd_spooky_birthday_t209.play(1, false);
+        break;
+    case 215:
+        bn::dmg_music_items::cr90_ltcd_spooky_birthday_t215.play(1, false);
+        break;
+    case 220:
+        bn::dmg_music_items::cr90_ltcd_spooky_birthday_t220.play(1, false);
+        break;
+
+    default:
+        BN_ERROR("Unsupported tempo=", tempo, " for `spooky_birthday.vgm`");
+    }
+
+    const int base_total_frames = 13 * 60 / 2 - 24 - 24;
+    return recommended_total_frames(base_total_frames, completed_games, data);
 }
 
 } // namespace cr90::ltcd
