@@ -68,20 +68,20 @@ constexpr bn::fixed_rect GROUNDED_CANDLE_RANGE = []() {
 
 } // namespace
 
-static int init_not_fire_candles_count(mj::difficulty_level difficulty)
+static int init_candles_count(mj::difficulty_level difficulty)
 {
-    constexpr bn::array<int, 3> NOT_FIRE_CANDLES_COUNTS = {4, 5, 7};
+    constexpr bn::array<int, 3> CANDLES_COUNTS = {4, 5, 6};
 
     static_assert(
-        [NOT_FIRE_CANDLES_COUNTS]() -> bool {
-            for (int note_fire_candles_count : NOT_FIRE_CANDLES_COUNTS)
-                if (note_fire_candles_count + 1 > Game::MAX_CANDLES)
+        [CANDLES_COUNTS]() -> bool {
+            for (int candles_count : CANDLES_COUNTS)
+                if (candles_count > Game::MAX_CANDLES)
                     return false;
             return true;
         }(),
-        "`not_fire_candles_count` must be lower than `MAX_CANDLES`");
+        "`candles_count` must be lower than `MAX_CANDLES`");
 
-    return NOT_FIRE_CANDLES_COUNTS[(int)(difficulty)];
+    return CANDLES_COUNTS[(int)(difficulty)];
 }
 
 static bool init_matchstick_fire(mj::difficulty_level difficulty, bn::random& random)
@@ -95,8 +95,7 @@ static bool init_matchstick_fire(mj::difficulty_level difficulty, bn::random& ra
 }
 
 Game::Game(int completed_games, const mj::game_data& data)
-    : _difficulty(recommended_difficulty_level(completed_games, data)),
-      _not_fire_candles_count(init_not_fire_candles_count(_difficulty)),
+    : _difficulty(recommended_difficulty_level(completed_games, data)), _candles_count(init_candles_count(_difficulty)),
       _bg_cake(bn::regular_bg_items::cr90_ltcd_cake.create_bg((256 - 240) / 2, (256 - 160) / 2)),
       _bg_black(bn::regular_bg_items::cr90_ltcd_black.create_bg((256 - 240) / 2, (256 - 160) / 2)),
       _matchstick(bn::fixed_point(-20, -20), init_matchstick_fire(_difficulty, data.random)),
@@ -109,19 +108,20 @@ Game::Game(int completed_games, const mj::game_data& data)
     bn::window::sprites().set_show_bg(_bg_black, false);
 
     // init candles
-    for (int i = 0; i < _not_fire_candles_count + !_matchstick.fire(); ++i)
+    for (int i = 0; i < _candles_count; ++i)
     {
         const auto x = data.random.get_fixed(GROUNDED_CANDLE_RANGE.left(), GROUNDED_CANDLE_RANGE.right());
         const auto y = data.random.get_fixed(GROUNDED_CANDLE_RANGE.top(), GROUNDED_CANDLE_RANGE.bottom());
 
-        Candle candle({x, y}, (i >= _not_fire_candles_count));
+        const bool fire = (i == _candles_count - 1 && !_matchstick.fire());
+        Candle candle({x, y}, fire);
         _candles.push_back(std::move(candle));
     }
 }
 
 auto Game::title() const -> bn::string<16>
 {
-    return bn::format<16>("Light {} candle{}!", _not_fire_candles_count, (_not_fire_candles_count > 1 ? "s" : ""));
+    return bn::format<16>("Light {} candle{}!", _candles_count, (_candles_count > 1 ? "s" : ""));
 }
 
 int Game::total_frames() const

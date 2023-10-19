@@ -49,7 +49,7 @@ public:
 private:
     const mj::difficulty_level _difficulty;
 
-    int _not_fire_candles_count;
+    int _candles_count;
 
     bn::regular_bg_ptr _bg_cake;
     bn::regular_bg_ptr _bg_black;
