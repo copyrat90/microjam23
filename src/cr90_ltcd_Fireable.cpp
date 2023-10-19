@@ -13,10 +13,12 @@ namespace cr90::ltcd
 Fireable::~Fireable() = default;
 
 Fireable::Fireable(const bn::fixed_point& position, bool fire, int light_median_radius, bn::fixed collider_radius,
-                   int particle_emit_interval)
-    : Entity(position), _light_median_radius(light_median_radius), _particle_emit_interval(particle_emit_interval),
-      _light(position, (fire ? light_median_radius : 0)), _collider(position, collider_radius),
-      _particle_emit_countdown(particle_emit_interval), _fire(fire)
+                   int particle_emit_interval, const bn::fixed_point& light_diff, const bn::fixed_point& collider_diff)
+    : Entity(position), _light_diff(light_diff), _collider_diff(collider_diff),
+      _light_median_radius(light_median_radius), _particle_emit_interval(particle_emit_interval),
+      _light(position + light_diff, (fire ? light_median_radius : 0)),
+      _collider(position + collider_diff, collider_radius), _particle_emit_countdown(particle_emit_interval),
+      _fire(fire)
 {
     BN_ASSERT(CircleLight::MIN_RADIUS + 1 <= light_median_radius && light_median_radius <= CircleLight::MAX_RADIUS - 1,
               "light_median_radius not in [", CircleLight::MIN_RADIUS + 1, "..", CircleLight::MAX_RADIUS - 1, "]");
@@ -73,24 +75,24 @@ void Fireable::set_position(const bn::fixed_point& position)
 {
     Entity::set_position(position);
 
-    _light.set_position(position);
-    _collider.set_position(position);
+    _light.set_position(position + _light_diff);
+    _collider.set_position(position + _collider_diff);
 }
 
 void Fireable::set_x(bn::fixed x)
 {
     Entity::set_x(x);
 
-    _light.set_x(x);
-    _collider.set_x(x);
+    _light.set_x(x + _light_diff.x());
+    _collider.set_x(x + _collider_diff.x());
 }
 
 void Fireable::set_y(bn::fixed y)
 {
     Entity::set_y(y);
 
-    _light.set_y(y);
-    _collider.set_y(y);
+    _light.set_y(y + _light_diff.y());
+    _collider.set_y(y + _collider_diff.y());
 }
 
 } // namespace cr90::ltcd

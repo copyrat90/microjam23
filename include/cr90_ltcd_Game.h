@@ -49,7 +49,8 @@ public:
 private:
     const mj::difficulty_level _difficulty;
 
-    int _candles_count;
+    const int _candles_count;
+    int _no_fire_candles_count;
 
     bn::regular_bg_ptr _bg_cake;
     bn::regular_bg_ptr _bg_black;
@@ -59,9 +60,6 @@ private:
     LightParticles _particles;
 
     int _total_frames;
-    int _show_result_frames = 60;
-    bool _victory = false;
-    bool _defeat = false;
 };
 
 } // namespace cr90::ltcd

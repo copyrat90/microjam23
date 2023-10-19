@@ -15,7 +15,8 @@ class Fireable : public Entity
 public:
     virtual ~Fireable() = 0;
     Fireable(const bn::fixed_point& position, bool fire, int light_median_radius, bn::fixed collider_radius,
-             int particle_emit_interval);
+             int particle_emit_interval, const bn::fixed_point& light_diff = {},
+             const bn::fixed_point& collider_diff = {});
 
     void update(const mj::game_data&, Game&) override;
 
@@ -31,6 +32,9 @@ public:
     void set_y(bn::fixed) override;
 
 private:
+    const bn::fixed_point _light_diff;
+    const bn::fixed_point _collider_diff;
+
     const int _light_median_radius;
     const int _particle_emit_interval;
 

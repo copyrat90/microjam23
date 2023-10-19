@@ -4,12 +4,14 @@
 #include "bn_display.h"
 #include "bn_fixed_rect.h"
 #include "bn_format.h"
+#include "bn_sound.h"
 #include "bn_window.h"
 
 #include "mj/mj_game_list.h"
 
 #include "bn_regular_bg_items_cr90_ltcd_black.h"
 #include "bn_regular_bg_items_cr90_ltcd_cake.h"
+#include "bn_sound_items.h"
 
 #include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t138.h"
 #include "bn_dmg_music_items_cr90_ltcd_spooky_birthday_t143.h"
@@ -75,11 +77,11 @@ static int init_candles_count(mj::difficulty_level difficulty)
     static_assert(
         [CANDLES_COUNTS]() -> bool {
             for (int candles_count : CANDLES_COUNTS)
-                if (candles_count > Game::MAX_CANDLES)
+                if (candles_count > Game::MAX_CANDLES || candles_count < 2)
                     return false;
             return true;
         }(),
-        "`candles_count` must be lower than `MAX_CANDLES`");
+        "`candles_count` must be in [2..`MAX_CANDLES`]");
 
     return CANDLES_COUNTS[(int)(difficulty)];
 }
@@ -96,9 +98,10 @@ static bool init_matchstick_fire(mj::difficulty_level difficulty, bn::random& ra
 
 Game::Game(int completed_games, const mj::game_data& data)
     : _difficulty(recommended_difficulty_level(completed_games, data)), _candles_count(init_candles_count(_difficulty)),
+      _no_fire_candles_count(_candles_count),
       _bg_cake(bn::regular_bg_items::cr90_ltcd_cake.create_bg((256 - 240) / 2, (256 - 160) / 2)),
       _bg_black(bn::regular_bg_items::cr90_ltcd_black.create_bg((256 - 240) / 2, (256 - 160) / 2)),
-      _matchstick(bn::fixed_point(-20, -20), init_matchstick_fire(_difficulty, data.random)),
+      _matchstick(bn::fixed_point(0, 40), init_matchstick_fire(_difficulty, data.random)),
       _total_frames(play_spooky_birthday_vgm(completed_games, data))
 {
     // init shadow effect
@@ -113,9 +116,11 @@ Game::Game(int completed_games, const mj::game_data& data)
         const auto x = data.random.get_fixed(GROUNDED_CANDLE_RANGE.left(), GROUNDED_CANDLE_RANGE.right());
         const auto y = data.random.get_fixed(GROUNDED_CANDLE_RANGE.top(), GROUNDED_CANDLE_RANGE.bottom());
 
-        const bool fire = (i == _candles_count - 1 && !_matchstick.fire());
-        Candle candle({x, y}, fire);
+        const bool candle_fire = (i == _candles_count - 1 && !_matchstick.fire());
+        Candle candle({x, y}, candle_fire);
         _candles.push_back(std::move(candle));
+
+        _no_fire_candles_count -= candle_fire;
     }
 }
 
@@ -131,7 +136,7 @@ int Game::total_frames() const
 
 bool Game::victory() const
 {
-    return _victory;
+    return _no_fire_candles_count <= 0;
 }
 
 auto Game::particles() -> LightParticles&
@@ -171,7 +176,31 @@ auto Game::update(const mj::game_data& data) -> mj::game_result
 {
     _matchstick.update(data, *this);
     for (auto& candle : _candles)
+    {
         candle.update(data, *this);
+
+        auto spread_fire_to = [](Fireable& fireable) {
+            bn::sound::stop_all();
+            bn::sound_items::cr90_ltcd_set_fire.play();
+            fireable.set_fire(true);
+        };
+
+        if (_matchstick.fire() && !candle.fire())
+        {
+            if (_matchstick.collider().collide_with(candle.collider()))
+            {
+                spread_fire_to(candle);
+                --_no_fire_candles_count;
+            }
+        }
+        else if (candle.fire() && !_matchstick.fire())
+        {
+            if (_matchstick.collider().collide_with(candle.collider()))
+            {
+                spread_fire_to(_matchstick);
+            }
+        }
+    }
 
     _particles.update(data, *this);
 
