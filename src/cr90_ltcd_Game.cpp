@@ -1,8 +1,10 @@
 #include "cr90_ltcd_Game.h"
 
+#include "bn_bitset.h"
 #include "bn_blending.h"
 #include "bn_display.h"
-#include "bn_fixed_rect.h"
+#include "bn_fixed_point.h"
+#include "bn_fixed_size.h"
 #include "bn_format.h"
 #include "bn_sound.h"
 #include "bn_window.h"
@@ -49,30 +51,29 @@ namespace cr90::ltcd
 namespace
 {
 
-constexpr bn::fixed_rect GROUNDED_CANDLE_RANGE = []() {
-    bn::fixed_rect result;
-    constexpr int CANDLE_BOTTOM_DIFF = 48;
+constexpr bn::fixed CANDLE_BOTTOM_DIFF = 48;
 
-    constexpr bn::fixed_point TOP_LEFT = {
-        40 - bn::display::width() / 2,
-        64 - CANDLE_BOTTOM_DIFF - bn::display::height() / 2,
-    };
-    constexpr bn::fixed_point BOTTOM_RIGHT = {
-        206 - bn::display::width() / 2,
-        124 - CANDLE_BOTTOM_DIFF - bn::display::height() / 2,
-    };
+constexpr bn::size CANDLE_GRID_SIZE = {16, 5};
+constexpr bn::fixed_point CANDLE_GRID_TOP_LEFT = {40, 70};
+constexpr bn::fixed_point CANDLE_GRID_BOTTOM_LEFT = {200, 120};
+constexpr bn::fixed_size CANDLE_GRID_CELL_SIZE = {
+    (CANDLE_GRID_BOTTOM_LEFT.x() - CANDLE_GRID_TOP_LEFT.x()) / CANDLE_GRID_SIZE.width(),
+    (CANDLE_GRID_BOTTOM_LEFT.y() - CANDLE_GRID_TOP_LEFT.y()) / CANDLE_GRID_SIZE.height(),
+};
 
-    result.set_position((TOP_LEFT.x() + BOTTOM_RIGHT.x()) / 2, (TOP_LEFT.y() + BOTTOM_RIGHT.y()) / 2);
-    result.set_dimensions(BOTTOM_RIGHT.x() - TOP_LEFT.x(), BOTTOM_RIGHT.y() - TOP_LEFT.y());
+struct PlayedDifficulties
+{
+    bool easy : 1 = false;
+    bool normal : 1 = false;
+};
 
-    return result;
-}();
+PlayedDifficulties g_played_difficulties;
 
 } // namespace
 
 static int init_candles_count(mj::difficulty_level difficulty)
 {
-    constexpr bn::array<int, 3> CANDLES_COUNTS = {4, 5, 6};
+    constexpr bn::array<int, 3> CANDLES_COUNTS = {5, 5, 6};
 
     static_assert(
         [CANDLES_COUNTS]() -> bool {
@@ -97,7 +98,7 @@ static bool init_matchstick_fire(mj::difficulty_level difficulty, bn::random& ra
 }
 
 Game::Game(int completed_games, const mj::game_data& data)
-    : _difficulty(recommended_difficulty_level(completed_games, data)), _candles_count(init_candles_count(_difficulty)),
+    : _difficulty(forced_difficulty_level(completed_games, data)), _candles_count(init_candles_count(_difficulty)),
       _no_fire_candles_count(_candles_count),
       _bg_cake(bn::regular_bg_items::cr90_ltcd_cake.create_bg((256 - 240) / 2, (256 - 160) / 2)),
       _bg_black(bn::regular_bg_items::cr90_ltcd_black.create_bg((256 - 240) / 2, (256 - 160) / 2)),
@@ -111,10 +112,43 @@ Game::Game(int completed_games, const mj::game_data& data)
     bn::window::sprites().set_show_bg(_bg_black, false);
 
     // init candles
+    bn::bitset<CANDLE_GRID_SIZE.width()> column_used;
     for (int i = 0; i < _candles_count; ++i)
     {
-        const auto x = data.random.get_fixed(GROUNDED_CANDLE_RANGE.left(), GROUNDED_CANDLE_RANGE.right());
-        const auto y = data.random.get_fixed(GROUNDED_CANDLE_RANGE.top(), GROUNDED_CANDLE_RANGE.bottom());
+        // select unused `column` in 16 X 5 candle grid (each cell is 10px X 10px)
+        const int available_columns = column_used.size() - column_used.count();
+        const int column_order = data.random.get_int(available_columns);
+
+        int column = -1;
+        for (int j = 0, order = 0; j < column_used.size(); ++j)
+        {
+            if (!column_used[j] && order++ == column_order)
+            {
+                column = j;
+
+                // mark adjacent columns as used
+                column_used[j] = true;
+                if (j - 1 >= 0)
+                    column_used[j - 1] = true;
+                if (j + 1 < column_used.size())
+                    column_used[j + 1] = true;
+
+                break;
+            }
+        }
+        BN_ASSERT(column >= 0, "logical error in random column selection");
+
+        // select any `row` in 16 X 5 candle grid
+        const int row = data.random.get_int(CANDLE_GRID_SIZE.height());
+
+        // get candle position within (column, row) cell
+        auto x = data.random.get_fixed(CANDLE_GRID_TOP_LEFT.x() + column * CANDLE_GRID_CELL_SIZE.width(),
+                                       CANDLE_GRID_TOP_LEFT.x() + (column + 1) * CANDLE_GRID_CELL_SIZE.width());
+        auto y = data.random.get_fixed(CANDLE_GRID_TOP_LEFT.y() + row * CANDLE_GRID_CELL_SIZE.height(),
+                                       CANDLE_GRID_TOP_LEFT.y() + (row + 1) * CANDLE_GRID_CELL_SIZE.height());
+
+        x -= bn::display::width() / 2;
+        y -= bn::display::height() / 2 + CANDLE_BOTTOM_DIFF;
 
         const bool candle_fire = (i == _candles_count - 1 && !_matchstick.fire());
         Candle candle({x, y}, candle_fire);
@@ -126,7 +160,7 @@ Game::Game(int completed_games, const mj::game_data& data)
 
 auto Game::title() const -> bn::string<16>
 {
-    return bn::format<16>("Light {} candle{}!", _candles_count, (_candles_count > 1 ? "s" : ""));
+    return bn::format<16>("Light {} candle{}!", _no_fire_candles_count, (_no_fire_candles_count > 1 ? "s" : ""));
 }
 
 int Game::total_frames() const
@@ -205,6 +239,24 @@ auto Game::update(const mj::game_data& data) -> mj::game_result
     _particles.update(data, *this);
 
     return mj::game_result{.exit = false, .remove_title = false};
+}
+
+auto Game::forced_difficulty_level(int completed_games, const mj::game_data& data) -> mj::difficulty_level
+{
+    auto difficulty = recommended_difficulty_level(completed_games, data);
+
+    if (!g_played_difficulties.easy)
+    {
+        g_played_difficulties.easy = true;
+        difficulty = mj::difficulty_level::EASY;
+    }
+    else if (!g_played_difficulties.normal)
+    {
+        g_played_difficulties.normal = true;
+        difficulty = mj::difficulty_level::NORMAL;
+    }
+
+    return difficulty;
 }
 
 int Game::play_spooky_birthday_vgm(int completed_games, const mj::game_data& data)

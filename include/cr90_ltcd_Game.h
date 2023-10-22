@@ -15,7 +15,7 @@ namespace cr90::ltcd
 class Game final : public mj::game
 {
 public:
-    static constexpr int MAX_CANDLES = 8;
+    static constexpr int MAX_CANDLES = 6;
 
 public:
     Game(int completed_games, const mj::game_data&);
@@ -38,6 +38,12 @@ public:
     auto update(const mj::game_data&) -> mj::game_result;
 
 public:
+    /**
+     * @brief Returns the difficulty level overriden with the played status.
+     * e.g. If you've never played `EASY` difficulty before, it's force-set to `EASY`.
+     */
+    static auto forced_difficulty_level(int completed_games, const mj::game_data& data) -> mj::difficulty_level;
+
     /**
      * @brief Plays the `spooky_birthday.vgm` with the recommended tempo
      * and returns the total frames the game should last.
