@@ -53,12 +53,29 @@ namespace
 
 constexpr bn::fixed CANDLE_BOTTOM_DIFF = 48;
 
+constexpr int FLYING_CHANGE_DIRECTION_INTERVAL = 30;
 constexpr bn::size CANDLE_GRID_SIZE = {16, 5};
-constexpr bn::fixed_point CANDLE_GRID_TOP_LEFT = {40, 70};
-constexpr bn::fixed_point CANDLE_GRID_BOTTOM_LEFT = {200, 120};
+
+constexpr bn::fixed_point CANDLE_GRID_TOP_LEFT = {
+    40 - bn::display::width() / 2,
+    70 - bn::display::height() / 2,
+};
+
+constexpr bn::fixed_point CANDLE_GRID_BOTTOM_RIGHT = {
+    200 - bn::display::width() / 2,
+    130 - bn::display::height() / 2,
+};
+
+constexpr bn::fixed_point CANDLE_GRID_CENTER = (CANDLE_GRID_TOP_LEFT + CANDLE_GRID_BOTTOM_RIGHT) / 2;
+
+constexpr bn::fixed_size CANDLE_GRID_DIMENSIONS = {
+    CANDLE_GRID_BOTTOM_RIGHT.x() - CANDLE_GRID_TOP_LEFT.x(),
+    CANDLE_GRID_BOTTOM_RIGHT.y() - CANDLE_GRID_TOP_LEFT.y(),
+};
+
 constexpr bn::fixed_size CANDLE_GRID_CELL_SIZE = {
-    (CANDLE_GRID_BOTTOM_LEFT.x() - CANDLE_GRID_TOP_LEFT.x()) / CANDLE_GRID_SIZE.width(),
-    (CANDLE_GRID_BOTTOM_LEFT.y() - CANDLE_GRID_TOP_LEFT.y()) / CANDLE_GRID_SIZE.height(),
+    CANDLE_GRID_DIMENSIONS.width() / CANDLE_GRID_SIZE.width(),
+    CANDLE_GRID_DIMENSIONS.height() / CANDLE_GRID_SIZE.height(),
 };
 
 struct PlayedDifficulties
@@ -112,7 +129,10 @@ Game::Game(int completed_games, const mj::game_data& data)
     bn::window::sprites().set_show_bg(_bg_black, false);
 
     // init candles
+    const int flying_candle_index =
+        ((_difficulty == mj::difficulty_level::HARD) ? data.random.get_int(_candles_count) : -1);
     bn::bitset<CANDLE_GRID_SIZE.width()> column_used;
+
     for (int i = 0; i < _candles_count; ++i)
     {
         // select unused `column` in 16 X 5 candle grid (each cell is 10px X 10px)
@@ -147,12 +167,38 @@ Game::Game(int completed_games, const mj::game_data& data)
         auto y = data.random.get_fixed(CANDLE_GRID_TOP_LEFT.y() + row * CANDLE_GRID_CELL_SIZE.height(),
                                        CANDLE_GRID_TOP_LEFT.y() + (row + 1) * CANDLE_GRID_CELL_SIZE.height());
 
-        x -= bn::display::width() / 2;
-        y -= bn::display::height() / 2 + CANDLE_BOTTOM_DIFF;
+        y -= CANDLE_BOTTOM_DIFF;
 
         const bool candle_fire = (i == _candles_count - 1 && !_matchstick.fire());
-        Candle candle({x, y}, candle_fire);
-        _candles.push_back(std::move(candle));
+        const bool candle_flying = (i == flying_candle_index);
+
+        _candles.emplace_back(bn::fixed_point{x, y}, candle_fire, candle_flying);
+
+        if (candle_flying)
+        {
+            static constexpr bn::fixed TOP_Y =
+                CANDLE_GRID_TOP_LEFT.y() + CANDLE_GRID_CELL_SIZE.height() / 2 - CANDLE_BOTTOM_DIFF;
+            static constexpr bn::fixed BOTTOM_Y =
+                CANDLE_GRID_BOTTOM_RIGHT.y() - CANDLE_GRID_CELL_SIZE.height() / 2 - CANDLE_BOTTOM_DIFF;
+
+            bn::fixed_point final_position(x, 0);
+
+            if (y > CANDLE_GRID_CENTER.y())
+            {
+                // flying: bottom -> top
+                _candles.back().set_y(BOTTOM_Y);
+                final_position.set_y(TOP_Y);
+            }
+            else
+            {
+                // flying: top -> bottom
+                _candles.back().set_y(TOP_Y);
+                final_position.set_y(BOTTOM_Y);
+            }
+
+            _flying_candle_action =
+                EntityMoveLoopAction(_candles.back(), FLYING_CHANGE_DIRECTION_INTERVAL, final_position);
+        }
 
         _no_fire_candles_count -= candle_fire;
     }
@@ -209,6 +255,10 @@ auto Game::handle_input(const mj::game_data& data) -> mj::game_result
 auto Game::update(const mj::game_data& data) -> mj::game_result
 {
     _matchstick.update(data, *this);
+
+    if (_flying_candle_action)
+        _flying_candle_action->update();
+
     for (auto& candle : _candles)
     {
         candle.update(data, *this);

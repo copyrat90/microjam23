@@ -2,10 +2,12 @@
 
 #include "mj/mj_game.h"
 
+#include "bn_optional.h"
 #include "bn_regular_bg_ptr.h"
 #include "bn_vector.h"
 
 #include "cr90_ltcd_Candle.h"
+#include "cr90_ltcd_EntityActions.h"
 #include "cr90_ltcd_LightParticles.h"
 #include "cr90_ltcd_Matchstick.h"
 
@@ -63,6 +65,7 @@ private:
 
     Matchstick _matchstick;
     bn::vector<Candle, MAX_CANDLES> _candles;
+    bn::optional<EntityMoveLoopAction> _flying_candle_action;
     LightParticles _particles;
 
     int _total_frames;

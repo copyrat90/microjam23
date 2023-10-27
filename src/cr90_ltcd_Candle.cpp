@@ -5,13 +5,14 @@
 #include "cr90_ltcd_Game.h"
 
 #include "bn_sprite_items_cr90_ltcd_candle.h"
+#include "bn_sprite_items_cr90_ltcd_flying_candle.h"
 
 namespace cr90::ltcd
 {
 
 namespace
 {
-constexpr auto CANDLE_DIFF = bn::fixed_point(4, 16);
+constexpr auto CANDLE_DIFF = bn::fixed_point(0, 16);
 
 constexpr int LIGHT_RADIUS = 10;
 constexpr int COLL_RADIUS = 4;
@@ -20,9 +21,14 @@ constexpr int PARTICLE_INTERVAL = 8;
 
 } // namespace
 
-Candle::Candle(const bn::fixed_point& position, bool fire)
-    : Fireable(position, fire, LIGHT_RADIUS, COLL_RADIUS, PARTICLE_INTERVAL, {}, {0, 4}),
-      _spr_candle(bn::sprite_items::cr90_ltcd_candle.create_sprite(position + CANDLE_DIFF, fire))
+static constexpr auto spr_item(bool flying) -> bn::sprite_item
+{
+    return flying ? bn::sprite_items::cr90_ltcd_flying_candle : bn::sprite_items::cr90_ltcd_candle;
+}
+
+Candle::Candle(const bn::fixed_point& position, bool fire, bool flying)
+    : Fireable(position, fire, LIGHT_RADIUS, COLL_RADIUS, PARTICLE_INTERVAL, {}, {}), _flying(flying),
+      _spr_candle(spr_item(flying).create_sprite(position + CANDLE_DIFF, fire))
 {
     set_fire(fire);
     set_position(position);
@@ -35,11 +41,16 @@ void Candle::update(const mj::game_data& data, Game& game)
     // TODO: Render candle fire animation
 }
 
+bool Candle::flying() const
+{
+    return _flying;
+}
+
 void Candle::set_fire(bool fire)
 {
     Fireable::set_fire(fire);
 
-    _spr_candle.set_tiles(bn::sprite_items::cr90_ltcd_candle.tiles_item(), fire);
+    _spr_candle.set_tiles(spr_item(flying()).tiles_item(), fire);
 }
 
 void Candle::set_position(const bn::fixed_point& position)
