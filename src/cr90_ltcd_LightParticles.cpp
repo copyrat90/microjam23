@@ -1,5 +1,7 @@
 #include "cr90_ltcd_LightParticles.h"
 
+#include "cr90_ltcd_Game.h"
+
 namespace cr90::ltcd
 {
 
@@ -16,9 +18,11 @@ void LightParticles::add_particle(const bn::fixed_point& position)
 
 void LightParticles::update(const mj::game_data& data, Game& game)
 {
+    constexpr bn::fixed MOVE_SPEED = 2.5f;
+
     for (auto& particle : _particles_queue)
     {
-        particle.set_y(particle.y() - bn::fixed(2.5f));
+        particle.set_y(particle.y() - MOVE_SPEED * game.speed());
         particle.update(data, game);
     }
 

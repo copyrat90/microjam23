@@ -16,14 +16,14 @@ namespace
 constexpr auto STICK_DIFF = bn::fixed_point(-15, -7);
 
 constexpr int LIGHT_RADIUS = 15;
-constexpr int COLL_RADIUS = 8;
+constexpr bn::fixed COLL_RADIUS = 9;
 
 constexpr int PARTICLE_INTERVAL = 8;
 
 } // namespace
 
-Matchstick::Matchstick(const bn::fixed_point& position, bool fire)
-    : Fireable(position, fire, LIGHT_RADIUS, COLL_RADIUS, PARTICLE_INTERVAL),
+Matchstick::Matchstick(const bn::fixed_point& position, bool fire, bn::fixed game_speed)
+    : Fireable(position, fire, LIGHT_RADIUS, COLL_RADIUS * game_speed, PARTICLE_INTERVAL),
       _spr_stick(bn::sprite_items::cr90_ltcd_matchstick.create_sprite(position + STICK_DIFF, fire))
 {
     set_fire(fire);
@@ -31,18 +31,18 @@ Matchstick::Matchstick(const bn::fixed_point& position, bool fire)
     _spr_stick.set_bg_priority(2);
 }
 
-void Matchstick::handle_input(const mj::game_data&, Game&)
+void Matchstick::handle_input(const mj::game_data&, Game& game)
 {
     constexpr bn::fixed MOVE_SPEED = 2.0f;
 
     if (bn::keypad::left_held())
-        set_x(bn::max(x() - MOVE_SPEED, bn::fixed(-bn::display::width() / 2)));
+        set_x(bn::max(x() - MOVE_SPEED * game.speed(), bn::fixed(-bn::display::width() / 2)));
     else if (bn::keypad::right_held())
-        set_x(bn::min(x() + MOVE_SPEED, bn::fixed(+bn::display::width() / 2)));
+        set_x(bn::min(x() + MOVE_SPEED * game.speed(), bn::fixed(+bn::display::width() / 2)));
     if (bn::keypad::up_held())
-        set_y(bn::max(y() - MOVE_SPEED, bn::fixed(-bn::display::height() / 2)));
+        set_y(bn::max(y() - MOVE_SPEED * game.speed(), bn::fixed(-bn::display::height() / 2)));
     else if (bn::keypad::down_held())
-        set_y(bn::min(y() + MOVE_SPEED, bn::fixed(+bn::display::height() / 2)));
+        set_y(bn::min(y() + MOVE_SPEED * game.speed(), bn::fixed(+bn::display::height() / 2)));
 }
 
 void Matchstick::update(const mj::game_data& data, Game& game)

@@ -28,6 +28,8 @@ public:
     bool victory() const final;
 
 public:
+    auto speed() const -> bn::fixed;
+
     auto particles() -> LightParticles&;
 
 public:
@@ -56,6 +58,7 @@ public:
 
 private:
     const mj::difficulty_level _difficulty;
+    const bn::fixed _speed;
 
     const int _candles_count;
     int _no_fire_candles_count;

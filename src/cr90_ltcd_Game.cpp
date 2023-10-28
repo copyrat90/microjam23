@@ -53,7 +53,7 @@ namespace
 
 constexpr bn::fixed CANDLE_BOTTOM_DIFF = 48;
 
-constexpr int FLYING_CHANGE_DIRECTION_INTERVAL = 30;
+constexpr int FLYING_CHANGE_DIRECTION_INTERVAL = 45;
 constexpr bn::size CANDLE_GRID_SIZE = {16, 5};
 
 constexpr bn::fixed_point CANDLE_GRID_TOP_LEFT = {
@@ -88,9 +88,14 @@ PlayedDifficulties g_played_difficulties;
 
 } // namespace
 
+static auto init_speed(bn::fixed speed) -> bn::fixed
+{
+    return 1 + (speed - 1) / 4;
+}
+
 static int init_candles_count(mj::difficulty_level difficulty)
 {
-    constexpr bn::array<int, 3> CANDLES_COUNTS = {5, 5, 6};
+    constexpr bn::array<int, 3> CANDLES_COUNTS = {5, 6, 6};
 
     static_assert(
         [CANDLES_COUNTS]() -> bool {
@@ -115,11 +120,12 @@ static bool init_matchstick_fire(mj::difficulty_level difficulty, bn::random& ra
 }
 
 Game::Game(int completed_games, const mj::game_data& data)
-    : _difficulty(forced_difficulty_level(completed_games, data)), _candles_count(init_candles_count(_difficulty)),
-      _no_fire_candles_count(_candles_count),
+    : _difficulty(forced_difficulty_level(completed_games, data)),
+      _speed(init_speed(recommended_music_tempo(completed_games, data))),
+      _candles_count(init_candles_count(_difficulty)), _no_fire_candles_count(_candles_count),
       _bg_cake(bn::regular_bg_items::cr90_ltcd_cake.create_bg((256 - 240) / 2, (256 - 160) / 2)),
       _bg_black(bn::regular_bg_items::cr90_ltcd_black.create_bg((256 - 240) / 2, (256 - 160) / 2)),
-      _matchstick(bn::fixed_point(0, 40), init_matchstick_fire(_difficulty, data.random)),
+      _matchstick(bn::fixed_point(0, 40), init_matchstick_fire(_difficulty, data.random), _speed),
       _total_frames(play_spooky_birthday_vgm(completed_games, data))
 {
     // init shadow effect
@@ -196,8 +202,8 @@ Game::Game(int completed_games, const mj::game_data& data)
                 final_position.set_y(BOTTOM_Y);
             }
 
-            _flying_candle_action =
-                EntityMoveLoopAction(_candles.back(), FLYING_CHANGE_DIRECTION_INTERVAL, final_position);
+            _flying_candle_action = EntityMoveLoopAction(
+                _candles.back(), (FLYING_CHANGE_DIRECTION_INTERVAL / _speed).round_integer(), final_position);
         }
 
         _no_fire_candles_count -= candle_fire;
@@ -217,6 +223,11 @@ int Game::total_frames() const
 bool Game::victory() const
 {
     return _no_fire_candles_count <= 0;
+}
+
+auto Game::speed() const -> bn::fixed
+{
+    return _speed;
 }
 
 auto Game::particles() -> LightParticles&
@@ -300,7 +311,7 @@ auto Game::forced_difficulty_level(int completed_games, const mj::game_data& dat
         g_played_difficulties.easy = true;
         difficulty = mj::difficulty_level::EASY;
     }
-    else if (!g_played_difficulties.normal)
+    else if (difficulty >= mj::difficulty_level::NORMAL && !g_played_difficulties.normal)
     {
         g_played_difficulties.normal = true;
         difficulty = mj::difficulty_level::NORMAL;

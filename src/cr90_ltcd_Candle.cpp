@@ -15,7 +15,7 @@ namespace
 constexpr auto CANDLE_DIFF = bn::fixed_point(0, 16);
 
 constexpr int LIGHT_RADIUS = 10;
-constexpr int COLL_RADIUS = 4;
+constexpr bn::fixed COLL_RADIUS = 5;
 
 constexpr int PARTICLE_INTERVAL = 8;
 
