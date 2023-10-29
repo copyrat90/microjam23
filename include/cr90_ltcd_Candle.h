@@ -2,6 +2,8 @@
 
 #include "cr90_ltcd_Fireable.h"
 
+#include "bn_optional.h"
+#include "bn_sprite_animate_actions.h"
 #include "bn_sprite_ptr.h"
 
 #include "cr90_ltcd_CircleCollider.h"
@@ -31,6 +33,7 @@ private:
     const bool _flying;
 
     bn::sprite_ptr _spr_candle;
+    bn::optional<bn::sprite_animate_action<4>> _anim;
 };
 
 } // namespace cr90::ltcd

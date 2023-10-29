@@ -52,7 +52,7 @@ namespace cr90::ltcd
 namespace
 {
 
-constexpr bn::fixed CANDLE_BOTTOM_DIFF = 48;
+constexpr bn::fixed CANDLE_BOTTOM_DIFF = 46;
 
 constexpr int FLYING_CHANGE_DIRECTION_INTERVAL = 45;
 constexpr bn::size CANDLE_GRID_SIZE = {24, 5};
@@ -243,33 +243,24 @@ void Game::fade_in(const mj::game_data& data)
 
 auto Game::play(const mj::game_data& data) -> mj::game_result
 {
-    const bool prev_victory = victory();
+    handle_input(data);
+    update(data);
+    spread_fire();
 
-    auto result = handle_input(data);
-    auto result_2 = update(data);
-
-    if (victory() && !prev_victory)
-        bn::sound_items::cr90_ltcd_correct.play();
-
-    result.exit |= result_2.exit;
-    result.remove_title |= result_2.remove_title;
-
-    return result;
+    return mj::game_result{.exit = false, .remove_title = victory()};
 }
 
 void Game::fade_out(const mj::game_data& data)
 {
-    fade_in(data);
+    update(data);
 }
 
-auto Game::handle_input(const mj::game_data& data) -> mj::game_result
+void Game::handle_input(const mj::game_data& data)
 {
     _matchstick.handle_input(data, *this);
-
-    return mj::game_result{.exit = false, .remove_title = false};
 }
 
-auto Game::update(const mj::game_data& data) -> mj::game_result
+void Game::update(const mj::game_data& data)
 {
     _matchstick.update(data, *this);
 
@@ -277,9 +268,17 @@ auto Game::update(const mj::game_data& data) -> mj::game_result
         _flying_candle_action->update();
 
     for (auto& candle : _candles)
-    {
         candle.update(data, *this);
 
+    _particles.update(data, *this);
+}
+
+void Game::spread_fire()
+{
+    const bool prev_victory = victory();
+
+    for (auto& candle : _candles)
+    {
         auto spread_fire_to = [](Fireable& fireable) {
             bn::sound::stop_all();
             bn::sound_items::cr90_ltcd_set_fire.play();
@@ -303,9 +302,8 @@ auto Game::update(const mj::game_data& data) -> mj::game_result
         }
     }
 
-    _particles.update(data, *this);
-
-    return mj::game_result{.exit = false, .remove_title = false};
+    if (victory() && !prev_victory)
+        bn::sound_items::cr90_ltcd_correct.play();
 }
 
 auto Game::forced_difficulty_level(int completed_games, const mj::game_data& data) -> mj::difficulty_level

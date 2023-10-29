@@ -38,8 +38,9 @@ public:
     void fade_out(const mj::game_data&) final;
 
 public:
-    auto handle_input(const mj::game_data&) -> mj::game_result;
-    auto update(const mj::game_data&) -> mj::game_result;
+    void handle_input(const mj::game_data&);
+    void update(const mj::game_data&);
+    void spread_fire();
 
 public:
     /**

@@ -12,7 +12,7 @@ namespace cr90::ltcd
 
 namespace
 {
-constexpr auto CANDLE_DIFF = bn::fixed_point(0, 16);
+constexpr auto CANDLE_DIFF = bn::fixed_point(0, 14);
 
 constexpr int LIGHT_RADIUS = 10;
 constexpr bn::fixed COLL_RADIUS = 5;
@@ -38,7 +38,8 @@ void Candle::update(const mj::game_data& data, Game& game)
 {
     Fireable::update(data, game);
 
-    // TODO: Render candle fire animation
+    if (_anim && !_anim->done())
+        _anim->update();
 }
 
 bool Candle::flying() const
@@ -50,7 +51,15 @@ void Candle::set_fire(bool fire)
 {
     Fireable::set_fire(fire);
 
-    _spr_candle.set_tiles(spr_item(flying()).tiles_item(), fire);
+    if (fire)
+    {
+        _anim = bn::create_sprite_animate_action_forever(_spr_candle, 4, spr_item(_flying).tiles_item(), 2, 3, 2, 1);
+    }
+    else
+    {
+        _anim.reset();
+        _spr_candle.set_tiles(spr_item(flying()).tiles_item(), 0);
+    }
 }
 
 void Candle::set_position(const bn::fixed_point& position)

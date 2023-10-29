@@ -13,7 +13,7 @@ namespace cr90::ltcd
 
 namespace
 {
-constexpr auto STICK_DIFF = bn::fixed_point(-15, -7);
+constexpr auto STICK_DIFF = bn::fixed_point(-15, -4);
 
 constexpr int LIGHT_RADIUS = 15;
 constexpr bn::fixed COLL_RADIUS = 9;
@@ -49,14 +49,24 @@ void Matchstick::update(const mj::game_data& data, Game& game)
 {
     Fireable::update(data, game);
 
-    // TODO: Render matchstick fire animation
+    if (_anim && !_anim->done())
+        _anim->update();
 }
 
 void Matchstick::set_fire(bool fire)
 {
     Fireable::set_fire(fire);
 
-    _spr_stick.set_tiles(bn::sprite_items::cr90_ltcd_matchstick.tiles_item(), fire);
+    if (fire)
+    {
+        _anim = bn::create_sprite_animate_action_forever(
+            _spr_stick, 4, bn::sprite_items::cr90_ltcd_matchstick.tiles_item(), 2, 3, 2, 1);
+    }
+    else
+    {
+        _anim.reset();
+        _spr_stick.set_tiles(bn::sprite_items::cr90_ltcd_matchstick.tiles_item(), 0);
+    }
 }
 
 void Matchstick::set_position(const bn::fixed_point& position)
