@@ -17,7 +17,7 @@ namespace cr90::ltcd
 class Game final : public mj::game
 {
 public:
-    static constexpr int MAX_CANDLES = 6;
+    static constexpr int MAX_CANDLES = 8;
 
 public:
     Game(int completed_games, const mj::game_data&);

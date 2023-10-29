@@ -55,7 +55,7 @@ namespace
 constexpr bn::fixed CANDLE_BOTTOM_DIFF = 48;
 
 constexpr int FLYING_CHANGE_DIRECTION_INTERVAL = 45;
-constexpr bn::size CANDLE_GRID_SIZE = {16, 5};
+constexpr bn::size CANDLE_GRID_SIZE = {24, 5};
 
 constexpr bn::fixed_point CANDLE_GRID_TOP_LEFT = {
     40 - bn::display::width() / 2,
@@ -96,7 +96,7 @@ static auto init_speed(bn::fixed speed) -> bn::fixed
 
 static int init_candles_count(mj::difficulty_level difficulty)
 {
-    constexpr bn::array<int, 3> CANDLES_COUNTS = {5, 6, 6};
+    constexpr bn::array<int, 3> CANDLES_COUNTS = {6, 7, 8};
 
     static_assert(
         [CANDLES_COUNTS]() -> bool {
@@ -142,7 +142,7 @@ Game::Game(int completed_games, const mj::game_data& data)
 
     for (int i = 0; i < _candles_count; ++i)
     {
-        // select unused `column` in 16 X 5 candle grid (each cell is 10px X 10px)
+        // select unused `column` in 24 X 5 candle grid
         const int available_columns = column_used.size() - column_used.count();
         const int column_order = data.random.get_int(available_columns);
 
@@ -165,7 +165,7 @@ Game::Game(int completed_games, const mj::game_data& data)
         }
         BN_ASSERT(column >= 0, "logical error in random column selection");
 
-        // select any `row` in 16 X 5 candle grid
+        // select any `row` in 24 X 5 candle grid
         const int row = data.random.get_int(CANDLE_GRID_SIZE.height());
 
         // get candle position within (column, row) cell
