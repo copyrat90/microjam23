@@ -126,7 +126,7 @@ Game::Game(int completed_games, const mj::game_data& data)
       _candles_count(init_candles_count(_difficulty)), _no_fire_candles_count(_candles_count),
       _bg_cake(bn::regular_bg_items::cr90_ltcd_cake.create_bg((256 - 240) / 2, (256 - 160) / 2)),
       _bg_black(bn::regular_bg_items::cr90_ltcd_black.create_bg((256 - 240) / 2, (256 - 160) / 2)),
-      _matchstick(bn::fixed_point(0, 40), init_matchstick_fire(_difficulty, data.random), _speed),
+      _matchstick(bn::fixed_point(0, 40), init_matchstick_fire(_difficulty, data.random)),
       _total_frames(play_spooky_birthday_vgm(completed_games, data))
 {
     // init shadow effect
@@ -179,7 +179,7 @@ Game::Game(int completed_games, const mj::game_data& data)
         const bool candle_fire = (i == _candles_count - 1 && !_matchstick.fire());
         const bool candle_flying = (i == flying_candle_index);
 
-        _candles.emplace_back(bn::fixed_point{x, y}, candle_fire, candle_flying);
+        _candles.emplace_back(bn::fixed_point{x, y}, candle_fire, candle_flying, _speed);
 
         if (candle_flying)
         {

@@ -16,14 +16,14 @@ namespace
 constexpr auto STICK_DIFF = bn::fixed_point(-15, -4);
 
 constexpr int LIGHT_RADIUS = 15;
-constexpr bn::fixed COLL_RADIUS = 9;
+constexpr bn::fixed COLL_RADIUS = 8;
 
 constexpr int PARTICLE_INTERVAL = 8;
 
 } // namespace
 
-Matchstick::Matchstick(const bn::fixed_point& position, bool fire, bn::fixed game_speed)
-    : Fireable(position, fire, LIGHT_RADIUS, COLL_RADIUS * game_speed, PARTICLE_INTERVAL),
+Matchstick::Matchstick(const bn::fixed_point& position, bool fire)
+    : Fireable(position, fire, LIGHT_RADIUS, COLL_RADIUS, PARTICLE_INTERVAL),
       _spr_stick(bn::sprite_items::cr90_ltcd_matchstick.create_sprite(position + STICK_DIFF, fire))
 {
     set_fire(fire);

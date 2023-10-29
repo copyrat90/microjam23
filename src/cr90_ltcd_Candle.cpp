@@ -15,7 +15,7 @@ namespace
 constexpr auto CANDLE_DIFF = bn::fixed_point(0, 14);
 
 constexpr int LIGHT_RADIUS = 10;
-constexpr bn::fixed COLL_RADIUS = 5;
+constexpr bn::fixed COLL_RADIUS = 4.5f;
 
 constexpr int PARTICLE_INTERVAL = 8;
 
@@ -26,8 +26,8 @@ static constexpr auto spr_item(bool flying) -> bn::sprite_item
     return flying ? bn::sprite_items::cr90_ltcd_flying_candle : bn::sprite_items::cr90_ltcd_candle;
 }
 
-Candle::Candle(const bn::fixed_point& position, bool fire, bool flying)
-    : Fireable(position, fire, LIGHT_RADIUS, COLL_RADIUS, PARTICLE_INTERVAL, {}, {}), _flying(flying),
+Candle::Candle(const bn::fixed_point& position, bool fire, bool flying, bn::fixed game_speed)
+    : Fireable(position, fire, LIGHT_RADIUS, COLL_RADIUS * game_speed, PARTICLE_INTERVAL, {}, {}), _flying(flying),
       _spr_candle(spr_item(flying).create_sprite(position + CANDLE_DIFF, fire))
 {
     set_fire(fire);

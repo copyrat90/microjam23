@@ -15,7 +15,7 @@ namespace cr90::ltcd
 class Matchstick final : public Fireable
 {
 public:
-    Matchstick(const bn::fixed_point& position, bool fire, bn::fixed game_speed);
+    Matchstick(const bn::fixed_point& position, bool fire);
 
     void handle_input(const mj::game_data&, Game&) override;
     void update(const mj::game_data&, Game&) override;

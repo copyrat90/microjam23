@@ -15,7 +15,7 @@ namespace cr90::ltcd
 class Candle final : public Fireable
 {
 public:
-    Candle(const bn::fixed_point& position, bool fire, bool flying);
+    Candle(const bn::fixed_point& position, bool fire, bool flying, bn::fixed game_speed);
 
     void update(const mj::game_data&, Game&) override;
 
