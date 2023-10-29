@@ -37,13 +37,14 @@ namespace
 constexpr bn::string_view code_credits[] = {"copyrat90"};
 constexpr bn::string_view graphics_credits[] = {"copyrat90"};
 constexpr bn::string_view music_credits[] = {"copyrat90"};
+constexpr bn::string_view sfx_credits[] = {"copyrat90", "kingsrow"};
 } // namespace
 
 MJ_GAME_LIST_ADD(cr90::ltcd::Game)
 MJ_GAME_LIST_ADD_CODE_CREDITS(code_credits)
 MJ_GAME_LIST_ADD_GRAPHICS_CREDITS(graphics_credits)
 MJ_GAME_LIST_ADD_MUSIC_CREDITS(music_credits)
-// MJ_GAME_LIST_ADD_SFX_CREDITS(sfx_credits)
+MJ_GAME_LIST_ADD_SFX_CREDITS(sfx_credits)
 
 namespace cr90::ltcd
 {
@@ -242,8 +243,13 @@ void Game::fade_in(const mj::game_data& data)
 
 auto Game::play(const mj::game_data& data) -> mj::game_result
 {
+    const bool prev_victory = victory();
+
     auto result = handle_input(data);
     auto result_2 = update(data);
+
+    if (victory() && !prev_victory)
+        bn::sound_items::cr90_ltcd_correct.play();
 
     result.exit |= result_2.exit;
     result.remove_title |= result_2.remove_title;
