@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2023 copyrat90 <copyrat90@gmail.com>
+// SPDX-License-Identifier: MIT
+
 #include "cr90_ltcd_Entity.h"
 
 namespace cr90::ltcd
